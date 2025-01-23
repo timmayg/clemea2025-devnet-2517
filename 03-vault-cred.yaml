@@ -1,0 +1,24 @@
+---
+- name: Send a Test Message through Webex
+  hosts: localhost
+  gather_facts: true
+  connection: local
+
+  tasks:
+   - name: 01 - Retrieve Webex API Auth Info from Vault - New Cred
+     community.hashi_vault.vault_kv2_get:
+      url: "https://vault.theglens.net:8200"
+      engine_mount_point: "kv"
+      path: "webex_token"
+      auth_method: token
+      token: "{{ vault_token }}"
+     register: webex_auth
+
+   - name: 02 - Cisco Webex Teams - Send Current Time to the Room
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "Current Time is {{ ansible_facts.date_time.time }}"
+
