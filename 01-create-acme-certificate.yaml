@@ -31,7 +31,7 @@
       engine_mount_point: "{{ vault_mount }}"
       path: "{{ key_name }}"
       auth_method: token
-      token: "{{ ansible_password }}"
+      token: "{{ vault_token }}"
      register: le_private_key
 
 
@@ -41,7 +41,7 @@
       engine_mount_point: "{{ vault_mount }}"
       path: "cloudflare_token"
       auth_method: token
-      token: "{{ ansible_password }}"
+      token: "{{ vault_token }}"
      register: cloudflare_token
 
 
@@ -161,5 +161,5 @@
          fullchain: "{{ lookup('file',  '{{ fqdn }}.fullchain') }}"
          p12_in_base64: "{{ lookup('file',  'pkcs12_file.p12.txt') }}"
        auth_method: token
-       token: "{{ ansible_password }}"
+       token: "{{ vault_token }}"
 
