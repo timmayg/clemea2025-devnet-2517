@@ -1,6 +1,6 @@
 # 2025 Cisco Live Amsterdam GO BEYOND
 
-![AWX 201 Session](images/githuba-banner.png)
+![AWX 201 Session](images/github-banner.png)
 
 Welcome to the repository for “AWX 201: Advanced Automation Techniques with the Ansible AWX Platform and GitHub Copilot” presented at Cisco Live Amsterdam 2025!
 
