@@ -1,0 +1,42 @@
+---
+- name: Import Certificate and Private Key to Cisco ISE
+  hosts: localhost
+  gather_facts: false
+  vars:
+    fqdn1: "ise1.theglens.net"
+
+  tasks:
+    - name: Read the ISE Certificate from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ vault_url }}"
+        auth_method: "{{ vault_auth_method }}"
+        token: "{{ vault_token }}"
+        engine_mount_point: "{{ vault_mount }}"
+        path: "ise1_credentials"
+      register: ise1_credentials
+
+    - name: Import a system certificate
+      cisco.ise.system_certificate:
+        ise_hostname: "{{ ise_hostname }}"
+        ise_username: "{{ ise_username }}"
+        ise_password: "{{ ise_password }}"
+        ise_verify: false  # Set to true if using valid certificates
+        operation_type: "import"
+        data:
+          certificateFile: "{{ lookup('file', '/path/to/your/certificate.crt') }}"  # Replace with the actual certificate file path
+          keyFile: "{{ lookup('file', '/path/to/your/private.key') }}"              # Replace with the actual private key file path
+          keyPassword: "your-key-password"                                         # Password for the private key, if encrypted
+          rootCa: "{{ lookup('file', '/path/to/ca_bundle.crt') }}"                 # Optional: Root CA bundle
+          description: "Imported via Ansible"
+          admin: true                                                              # Set true for an admin certificate
+
+
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
+
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
+
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
+
