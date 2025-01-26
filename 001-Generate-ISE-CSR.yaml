@@ -1,0 +1,110 @@
+---
+- name: Generate a Certificate Signing Request (CSR) for ISE
+  hosts: localhost
+  gather_facts: false
+  vars:
+    vault_url: "https://vault.theglens.net:8200"
+    vault_mount: "kv"
+    fqdn1: "ise1.theglens.net"
+    ise_verify: false
+  
+  tasks:
+
+    - name: 01 - Read ISE Credentials from Vault
+      community.hashi_vault.vault_kv2_get:
+        url: "{{ vault_url }}"
+        path: "ise1_credentials"
+        auth_method: token
+        token: "{{ ansible_password }}"
+        engine_mount_point: "{{ vault_mount }}"
+      register: response
+
+
+
+    - name: 02 - Generate a Certificate Signing Request (CSR) for ISE
+      cisco.ise.csr_generate:
+        ise_hostname: "{{ ise_hostname }}"
+        ise_username: "{{ ise_username }}"
+        ise_password: "{{ ise_password }}"
+        ise_verify: "{{ ise_verify }}"
+        #allowWildCardCert: true
+        #certificatePolicies: string
+        digestType: SHA-384
+        hostnames:
+        - "{{ fqdn1 }}"
+        keyLength: 4096
+        keyType: RSA
+        #portalGroupTag: string
+        sanDNS:
+        - "{{ fqdn1 }}"
+        #sanDir:
+        #- string
+        #sanIP:
+        #- string
+        #sanURI:
+        #- string
+        subjectCity: Amsterdam
+        subjectCommonName: "{{ fqdn1 }}"
+        subjectCountry: NL
+        subjectOrg: Cisco Live EMEA
+        subjectOrgUnit: DEVNET-2057
+        subjectState: North Holland
+        usedFor: MULTI-USE
+      register: csr_result
+
+
+    - name: 03 - Get CSR Export by id
+      cisco.ise.csr_export_info:
+        ise_hostname: "{{ ise_hostname }}"
+        ise_username: "{{ ise_username }}"
+        ise_password: "{{ ise_password }}"
+        hostname: "{{ fqdn1 }}"
+        id: "{{ csr_result.ise_response.response[0].id }}"
+        ise_verify: "{{ ise_verify }}"
+      register: csr_export
+
+
+    - name: 04 - Write the CSR to Vault
+      community.hashi_vault.vault_kv2_write:
+        url: "{{ vault_url }}"
+        path: "{{ fqdn1 }}_csr"
+        auth_method: token
+        token: "{{ ansible_password }}"
+        engine_mount_point: "kv"
+        data: 
+          csr: "{{ csr_export.ise_response.data }}"
+          ise_csr_id: "{{ csr_result.ise_response.response[0].id }}"
+ 
+
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
+
+
+#    - name: 03X - Delete by id
+#      cisco.ise.csr_delete:
+#        ise_hostname: "{{ response.data.data.ise_hostname }}"
+#        ise_username: "{{ response.data.data.ise_username }}"
+#        ise_password: "{{ response.data.data.ise_password }}"
+#        ise_verify: "{{ ise_verify }}"
+#        hostname: ise1
+#        id: "{{ csr_result.ise_response.response[0].id }}"
+
+
+
+    - name: Write CSR to a file
+      copy:
+        content: "{{ csr_result.ise_response.data }}"
+        dest: "/path/to/your/directory/{{ csr_result.ise_response.filename }}"
+      delegate_to: localhost
+
+
+
+    - name: Display the results
+      ansible.builtin.debug:
+        msg:
+          - "CSR ID: {{ csr_result.ise_response.response.id }}"
+
+    - name: Display the results
+      ansible.builtin.debug:
+        msg:
+          - "CSR ID: {{ csr_result }}"
