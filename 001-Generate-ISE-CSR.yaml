@@ -64,6 +64,11 @@
       register: csr_export
 
 
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
+
+
+####here
     - name: 04 - Write the CSR to Vault
       community.hashi_vault.vault_kv2_write:
         url: "{{ vault_url }}"
@@ -75,6 +80,10 @@
           csr: "{{ csr_export.ise_response.data }}"
           ise_csr_id: "{{ csr_result.ise_response.response[0].id }}"
  
+
+
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
 
     - name: Timmay HARD STOP this Playbook
       ansible.builtin.meta: end_play
