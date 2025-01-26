@@ -5,7 +5,7 @@
   vars:
     fqdn1: "ise1.theglens.net"
     ise_verify: false
-  
+
   tasks:
     - name: 02 - Generate a Certificate Signing Request (CSR) for ISE
       cisco.ise.csr_generate:
@@ -13,22 +13,22 @@
         ise_username: "{{ ise_username }}"
         ise_password: "{{ ise_password }}"
         ise_verify: "{{ ise_verify }}"
-        #allowWildCardCert: true
-        #certificatePolicies: string
+        # allowWildCardCert: true
+        # certificatePolicies: string
         digestType: SHA-384
         hostnames:
-        - "{{ fqdn1 }}"
+          - "{{ fqdn1 }}"
         keyLength: 4096
         keyType: RSA
-        #portalGroupTag: string
+        # portalGroupTag: string
         sanDNS:
-        - "{{ fqdn1 }}"
-        #sanDir:
-        #- string
-        #sanIP:
-        #- string
-        #sanURI:
-        #- string
+          - "{{ fqdn1 }}"
+          # sanDir:
+          # - string
+          # sanIP:
+          # - string
+          # sanURI:
+          # - string
         subjectCity: Amsterdam
         subjectCommonName: "{{ fqdn1 }}"
         subjectCountry: NL
