@@ -3,8 +3,6 @@
   hosts: localhost
   gather_facts: false
   vars:
-    vault_url: "https://vault.theglens.net:8200"
-    vault_mount: "kv"
     fqdn1: "ise1.theglens.net"
     ise_verify: false
   
@@ -60,10 +58,10 @@
     - name: 04 - Write the CSR to Vault
       community.hashi_vault.vault_kv2_write:
         url: "{{ vault_url }}"
+        token: "{{ vault_token }}"
+        engine_mount_point: "{{ vault_mount }}"
+        auth_method: "{{ vault_auth_method }}"
         path: "{{ fqdn1 }}_csr"
-        auth_method: token
-        token: "{{ ansible_password }}"
-        engine_mount_point: "kv"
         data: 
           csr: "{{ csr_export.ise_response.data }}"
           ise_csr_id: "{{ csr_result.ise_response.response[0].id }}"
