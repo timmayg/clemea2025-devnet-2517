@@ -9,18 +9,6 @@
     ise_verify: false
   
   tasks:
-
-    - name: 01 - Read ISE Credentials from Vault
-      community.hashi_vault.vault_kv2_get:
-        url: "{{ vault_url }}"
-        path: "ise1_credentials"
-        auth_method: token
-        token: "{{ ansible_password }}"
-        engine_mount_point: "{{ vault_mount }}"
-      register: response
-
-
-
     - name: 02 - Generate a Certificate Signing Request (CSR) for ISE
       cisco.ise.csr_generate:
         ise_hostname: "{{ ise_hostname }}"
