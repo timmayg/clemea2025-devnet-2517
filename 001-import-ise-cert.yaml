@@ -2,8 +2,8 @@
 - name: Import Certificate and Private Key to Cisco ISE
   hosts: localhost
   gather_facts: false
-  vars:
-    fqdn1: "ise1.theglens.net"
+#  vars:
+#    fqdn1: "ise1.theglens.net"
 
   tasks:
     - name: Read the ISE Certificate from Vault
