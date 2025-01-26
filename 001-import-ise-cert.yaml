@@ -28,7 +28,7 @@
           keyPassword: "your-key-password"                                         # Password for the private key, if encrypted
           rootCa: "{{ lookup('file', '/path/to/ca_bundle.crt') }}"                 # Optional: Root CA bundle
           description: "Imported via Ansible"
-          admin: true                                                              # Set true for an admin certificate
+          pxgrid: true                                                              # Set true for an admin certificate
 
 
     - name: Timmay HARD STOP this Playbook
