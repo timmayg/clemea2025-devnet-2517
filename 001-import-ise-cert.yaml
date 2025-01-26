@@ -15,6 +15,11 @@
         path: "ise1_credentials"
       register: ise1_credentials
 
+
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
+
+
     - name: Import a system certificate
       cisco.ise.system_certificate:
         ise_hostname: "{{ ise_hostname }}"
