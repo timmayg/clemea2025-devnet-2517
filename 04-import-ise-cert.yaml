@@ -79,7 +79,7 @@
         recipient_id: "{{ webex_auth.data.data.space_id }}"
         msg_type: markdown
         personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
-        msg: "Cert Import is {{ cert_import.ise_response.response.message }}" # at {{ ansible_date_time.date}} {{ ansible_date_time.time }}."
+        msg: "Cert Import is complete"  # {{ cert_import.ise_response.response.message }}" # at {{ ansible_date_time.date}} {{ ansible_date_time.time }}."
 
 
     - name: Timmay HARD STOP this Playbook
