@@ -33,9 +33,9 @@
       register: ise_creds
 
 
-    - name: Print
-      ansible.builtin.debug:
-        msg: "The Cert Version pulled from Vault is {{ cert_ver }}."
+#    - name: Print
+#      ansible.builtin.debug:
+#        msg: "The Cert Version pulled from Vault is {{ cert_ver }}."
 
 
     - name: 03 - Read ISE Certificate from Vault
@@ -45,7 +45,7 @@
         engine_mount_point: "{{ vault_mount }}"
         auth_method: token
         token: "{{ ansible_password }}"
-        version: "{{ cert_ver }}"
+        # version: "{{ cert_ver }}"
       register: cert_data
 
 
