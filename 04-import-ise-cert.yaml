@@ -33,6 +33,11 @@
       register: ise_creds
 
 
+    - name: Print
+      ansible.builtin.debug:
+        msg: "The Cert Version pulled from Vault is {{ cert_ver }}."
+
+
     - name: 03 - Read ISE Certificate from Vault
       community.hashi_vault.vault_kv2_get:
         path: "{{ fqdn }}"
