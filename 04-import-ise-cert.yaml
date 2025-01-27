@@ -1,0 +1,86 @@
+---
+- name: Import a Lets Encrypt Certificate to ISE Admin, Portal, and PXGrid
+  hosts: localhost
+  gather_facts: true
+  vars:
+    vault_url: "https://vault.theglens.net:8200"
+    vault_mount: "kv"
+    ise_verify: false
+
+  tasks:
+
+    - name: Print
+      ansible.builtin.debug:
+        msg: "The fqdn1 for this certificate will be {{ fqdn }}."
+
+    - name: 01 - Retrieve Webex Room Info from Vault
+      community.hashi_vault.vault_kv2_get:
+        path: "webex_token"
+        url: "{{ vault_url }}"
+        engine_mount_point: "{{ vault_mount }}"
+        auth_method: token
+        token: "{{ ansible_password }}"
+      register: webex_auth
+
+
+    - name: 02 - Read ISE Credentials from Vault
+      community.hashi_vault.vault_kv2_get:
+        path: "ise1_credentials"
+        url: "{{ vault_url }}"
+        engine_mount_point: "{{ vault_mount }}"
+        auth_method: token
+        token: "{{ ansible_password }}"
+      register: ise_creds
+
+
+    - name: 03 - Read ISE Certificate from Vault
+      community.hashi_vault.vault_kv2_get:
+        path: "{{ fqdn }}"
+        url: "{{ vault_url }}"
+        engine_mount_point: "{{ vault_mount }}"
+        auth_method: token
+        token: "{{ ansible_password }}"
+        # version: "{{ cert_ver }}"
+      register: cert_data
+
+
+    - name: 04 - Import a system certificate
+      cisco.ise.system_certificate_import:
+        ise_hostname: "{{ ise_creds.data.data.ise_hostname }}"
+        ise_username: "{{ ise_creds.data.data.ise_username }}"
+        ise_password: "{{ ise_creds.data.data.ise_password }}"
+        ise_verify: false  # Set to true if using valid certificates
+        ise_debug: true
+        allowRoleTransferForSameSubject: true
+        allowReplacementOfCertificates: true
+        allowReplacementOfPortalGroupTag: true
+        allowExtendedValidity: true
+        allowOutOfDateCert: true
+        allowPortalTagTransferForSameSubject: true
+        allowSHA1Certificates: true
+        name: "Import date {{ ansible_date_time.date }}"
+        privateKeyData: "{{ cert_data.data.data.private_key }}"
+        data: "{{ cert_data.data.data.cert }}"
+        pxgrid: true
+        admin: true
+        portal: true
+        portalGroupTag: "Default Portal Certificate Group"
+      register: cert_import
+
+
+    - name: 05 - Send Some Info to Webex Teams Room
+      community.general.cisco_webex:
+        recipient_type: roomId
+        recipient_id: "{{ webex_auth.data.data.space_id }}"
+        msg_type: markdown
+        personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+        msg: "Cert Import is {{ cert_import.ise_response.message }}" # at {{ ansible_date_time.date}} {{ ansible_date_time.time }}."
+
+
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
+
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
+
+
