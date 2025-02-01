@@ -79,17 +79,17 @@
       register: cert_import
 
 
-    - name: 05 - Send Some Info to Webex Teams Room
+    - name: 05 - Send Cert Import Status Info to Webex Teams Room
       community.general.cisco_webex:
         recipient_type: roomId
         recipient_id: "{{ webex_auth.data.data.space_id }}"
         msg_type: markdown
         personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
-        msg: "```
-              body.response.status: {{ cert_import.ise_response.response.status }}<br>
-              body.response.message: {{ cert_import.ise_response.response.message }}<br>
-              body.response.id: {{ cert_import.ise_response.response.id }}
-              ```"
+        msg: "
+              `body.response.status:` {{ cert_import.ise_response.response.status }}<br>
+              `body.response.message:` {{ cert_import.ise_response.response.message }}<br>
+              `body.response.id:` {{ cert_import.ise_response.response.id }}
+              "
 
 # This code block works , but body.response.id is converted to a URL.
 #        msg: "body.response.status {{ cert_import.ise_response.response.status }}<br>
