@@ -6,7 +6,21 @@
    vault_url: "https://vault.theglens.net:8200"
    vault_mount: "kv"
 
+
+
   tasks:
+#
+#   THESE TWO TASKS ARE FOR TESTING WITH RANDOM FQDNS
+#
+#   - name: Generate a random string for use in the FQDN
+#     ansible.builtin.set_fact:
+#       rand: "{{ lookup('community.general.random_string', length=5, lower=true, upper=false, special=false, numbers=false) }}"
+#
+#   - name: Build the Random Hostname and FQDN
+#     ansible.builtin.set_fact:
+#       fqdn: "aaa{{ rand }}.theglens.net"
+
+
    - name: Print
      ansible.builtin.debug:
        msg: "The fqdn for this certificate will be {{ fqdn }}."
@@ -31,7 +45,7 @@
       engine_mount_point: "{{ vault_mount }}"
       path: "{{ key_name }}"
       auth_method: token
-      token: "{{ vault_token }}"
+      token: "{{ ansible_password }}"
      register: le_private_key
 
 
@@ -41,8 +55,12 @@
       engine_mount_point: "{{ vault_mount }}"
       path: "cloudflare_token"
       auth_method: token
-      token: "{{ vault_token }}"
+      token: "{{ ansible_password }}"
      register: cloudflare_token
+
+#   - name: Print 
+#     ansible.builtin.debug:
+#       msg: "{{ server_private_key.secret.private_key }}"
 
 
    - name: 05 - Generate an OpenSSL Certificate Signing Request
@@ -76,9 +94,19 @@
      register: challenge_response
 
 
+#
+#   - name: HARD STOP
+#     ansible.builtin.meta: end_play
+
+
    - name: 08 - Capture the ACME Challenge Response
      ansible.builtin.set_fact:
        challenge_status: "{{ challenge_response.authorizations[fqdn].status }}"
+
+
+#   - name: Print 
+#     ansible.builtin.debug:
+#       msg: "{{ challenge_response }}"
 
 
    - name: 09 - Extract FQDN and DNS Challenge Text from ACME Response
@@ -86,6 +114,12 @@
        dns_01_challenge_text: "{{ challenge_response.challenge_data[fqdn]['dns-01'].resource_value }}"
        dns_01_challenge_fqdn: "{{ challenge_response.challenge_data[fqdn]['dns-01'].record.split('.')[0:2] | join('.') }}"
      when: challenge_status == 'pending'
+
+
+#   - name: Print
+#     ansible.builtin.debug:
+#       msg: "DNS-01 challenge text is: {{ dns_01_challenge_text }}"
+#       msg: "DNS-01 certificate FQDN is: {{ dns_01_challenge_fqdn }}"
 
 
    - name: 10 - Create DNS TXT record with DNS-01 Challenge Text"
@@ -121,6 +155,13 @@
        remaining_days: 60
        data: "{{ challenge_response }}"
      register: certificate_response
+
+
+
+#   - name: cat the cert file
+#     ansible.builtin.shell: cat "{{ fqdn }}.cer"
+#     register: cert_file
+
 
    - name: 13 - Delete the DNS TXT record (if it exists)
      community.general.cloudflare_dns:
@@ -161,5 +202,41 @@
          fullchain: "{{ lookup('file',  '{{ fqdn }}.fullchain') }}"
          p12_in_base64: "{{ lookup('file',  'pkcs12_file.p12.txt') }}"
        auth_method: token
-       token: "{{ vault_token }}"
+       token: "{{ ansible_password }}"
 
+
+   - name: Timmay HARD STOP this Playbook
+     ansible.builtin.meta: end_play
+
+
+   - name: 17 - Read the New Certificate from Vault, REQD for the next step 
+     community.hashi_vault.vault_kv2_get:
+       url: "{{ vault_url }}"
+       engine_mount_point: "{{ vault_mount }}"
+       path: "{{ fqdn }}"
+       auth_method: token
+       token: "{{ ansible_password }}"
+     register: current
+
+
+   - name: 18 - Append the Public Key to Vault Secret
+     vars:
+       values_to_update:
+          fullchain: "{{ lookup('file',  '{{ fqdn }}.fullchain') }}"
+     community.hashi_vault.vault_kv2_write:
+       url: "{{ vault_url }}"
+       engine_mount_point: "{{ vault_mount }}"
+       path: "{{ fqdn }}"
+       data: >-
+         {{
+           current.secret
+           | combine(values_to_update)
+         }}
+       auth_method: token
+       token: "{{ ansible_password }}"
+
+
+   - name: Timmay HARD STOP this Playbook
+     ansible.builtin.meta: end_play
+
+     
