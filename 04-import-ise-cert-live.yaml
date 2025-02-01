@@ -5,13 +5,14 @@
   vars:
     vault_url: "https://vault.theglens.net:8200"
     vault_mount: "kv"
-    ise_verify: false
+    ise_verify: true      # I set this to true on Sat Feb 1 1:19 am 
 
   tasks:
 
     - name: Print
       ansible.builtin.debug:
         msg: "The fqdn1 for this certificate will be {{ fqdn }}."
+
 
     - name: 01 - Retrieve Webex Room Info from Vault
       community.hashi_vault.vault_kv2_get:
@@ -33,6 +34,11 @@
       register: ise_creds
 
 
+#
+# HashiCorp Vault has a versioning system for secrets.
+# By modifying the version number, you can retrieve a previous 
+# version of the Certificate that is stored in Vault. 
+#
 #    - name: Print
 #      ansible.builtin.debug:
 #        msg: "The Cert Version pulled from Vault is {{ cert_ver }}."
@@ -79,9 +85,9 @@
         recipient_id: "{{ webex_auth.data.data.space_id }}"
         msg_type: markdown
         personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
-      msg: "body.response.status {{ cert_import.ise_response.response.status }}<br>
-            body.response.message {{ cert_import.ise_response.response.message }}<br>
-            body.response.id {{ cert_import.ise_response.response.id }}"
+        msg: "body.response.status {{ cert_import.ise_response.response.status }}<br>
+              body.response.message {{ cert_import.ise_response.response.message }}<br>
+              body.response.id {{ cert_import.ise_response.response.id }}"
       # msg: "Cert Import message {{ cert_import.ise_response.response.message }}"    #THIS WORKS IF ALL ELSE FAILS for CiscoLiveEMEA
 
     - name: Timmay HARD STOP this Playbook
