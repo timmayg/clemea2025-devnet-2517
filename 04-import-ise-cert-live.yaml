@@ -63,7 +63,7 @@
         allowOutOfDateCert: true
         allowPortalTagTransferForSameSubject: true
         allowSHA1Certificates: true
-        name: "Import date {{ ansible_date_time.iso8601 }}"
+        name: "Imported while at CiscoLiveEMEA on {{ ansible_date_time.iso8601 }} GO BEYOND"
         privateKeyData: "{{ cert_data.data.data.private_key }}"
         data: "{{ cert_data.data.data.cert }}"
         pxgrid: true
