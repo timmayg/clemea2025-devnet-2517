@@ -86,9 +86,9 @@
         msg_type: markdown
         personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
         msg: "```
-              body.response.status {{ cert_import.ise_response.response.status }}<br>
-              body.response.message {{ cert_import.ise_response.response.message }}<br>
-              body.response.id {{ cert_import.ise_response.response.id }}
+              body.response.status: {{ cert_import.ise_response.response.status }}<br>
+              body.response.message: {{ cert_import.ise_response.response.message }}<br>
+              body.response.id: {{ cert_import.ise_response.response.id }}
               ```"
 
 # This code block works , but body.response.id is converted to a URL.
