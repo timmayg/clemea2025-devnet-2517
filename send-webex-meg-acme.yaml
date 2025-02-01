@@ -96,6 +96,19 @@
             This is the second line of text<br>
             This is the third line of text"
 
+#   - name: XX - Cisco Webex Teams - Send Markdown Message to a Room
+#     community.general.cisco_webex:
+#      recipient_type: roomId
+#      recipient_id: "{{ webex_auth.data.data.space_id }}"
+#      msg_type: markdown
+#      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+#      msg: "
+#            `This is a line of code`<br>
+#            This second line ois just text<br>
+#            `This third line is code`
+#            "
+
+
    - name: XX - Cisco Webex Teams - Send Markdown Message to a Room
      community.general.cisco_webex:
       recipient_type: roomId
