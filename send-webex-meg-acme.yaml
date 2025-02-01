@@ -1,0 +1,106 @@
+---
+- name: Send a Test Message through Webex
+  hosts: localhost
+  gather_facts: true
+  connection: local
+  vars:
+   vault_url: "https://vault.theglens.net:8200"
+   vault_mount: "kv"
+
+  tasks:
+   - name: 01 - Retrieve Webex API Auth Info from Vault
+     community.hashi_vault.vault_kv2_get:
+      url: "{{ vault_url }}"
+      engine_mount_point: "{{ vault_mount }}"
+      path: "webex_token"
+      auth_method: token
+      token: "{{ ansible_password }}"
+     register: webex_auth
+
+   - name: XX - Cisco Webex Teams - Send Markdown Message to a Room
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "Successfully installed the Cert onto ISE!"
+
+
+   - name: HARD STOP
+     ansible.builtin.meta: end_play
+
+
+#
+#  Tasks below here are for testing purposes only
+#  Tasks below here are known to work
+#
+#  Here is some markdown guide
+#  https://www.markdownguide.org/basic-syntax/
+#
+
+   - name: XX - Cisco Webex Teams - Send ISO8601 Date Time Message
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "{{ ansible_facts.date_time.iso8601 }}"
+
+   - name: XX - Cisco Webex Teams - Output a file to a Webex Room
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "{{ lookup('file', '/runner/release-notes.json') }}"
+
+   - name: XX - Cisco Webex Teams - Send Markdown Message to a Room
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "**Double asterisks create BOLD message**"
+
+   - name: XX - Cisco Webex Teams - Send Markdown Message to a Room
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "# This is a Heading 1 - Extra Large"
+
+   - name: XX - Cisco Webex Teams - Send Markdown Message to a Room
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "## This is a Heading 2 - Very Large"
+
+   - name: XX - Cisco Webex Teams - Send Markdown Message to a Room
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "### This is a Heading 3 - Large"
+
+   - name: XX - Cisco Webex Teams - Send Markdown Message to a Room
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "This is the first line of text<br>
+            This is the second line of text<br>
+            This is the third line of text"
+
+   - name: XX - Cisco Webex Teams - Send Markdown Message to a Room
+     community.general.cisco_webex:
+      recipient_type: roomId
+      recipient_id: "{{ webex_auth.data.data.space_id }}"
+      msg_type: markdown
+      personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
+      msg: "This is  *italic*  text<br>"
+
