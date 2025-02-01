@@ -54,7 +54,7 @@
         ise_hostname: "{{ ise_creds.data.data.ise_hostname }}"
         ise_username: "{{ ise_creds.data.data.ise_username }}"
         ise_password: "{{ ise_creds.data.data.ise_password }}"
-        ise_verify: false  # Set to true if using valid certificates
+        ise_verify: true    # I set this to true on Sat Feb 1 1:19 am   # Set to true if using valid certificates
         ise_debug: true
         allowRoleTransferForSameSubject: true
         allowReplacementOfCertificates: true
@@ -79,13 +79,14 @@
         recipient_id: "{{ webex_auth.data.data.space_id }}"
         msg_type: markdown
         personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
-        msg: "Cert Import is complete {{ cert_import.ise_response.response.message }}"    # at {{ ansible_date_time.date}} {{ ansible_date_time.time }}."
-
+      msg: "body.response.status {{ cert_import.ise_response.response.status }}<br>
+            body.response.message {{ cert_import.ise_response.response.message }}<br>
+            body.response.id {{ cert_import.ise_response.response.id }}"
+      # msg: "Cert Import message {{ cert_import.ise_response.response.message }}"    #THIS WORKS IF ALL ELSE FAILS for CiscoLiveEMEA
 
     - name: Timmay HARD STOP this Playbook
       ansible.builtin.meta: end_play
 
-    - name: Timmay HARD STOP this Playbook
-      ansible.builtin.meta: end_play
+
 
 
