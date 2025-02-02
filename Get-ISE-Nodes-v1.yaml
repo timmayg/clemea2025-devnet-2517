@@ -1,0 +1,29 @@
+---
+- name: Get a List of the ISE Nodes v1.0
+  hosts: localhost
+  gather_facts: false
+
+  tasks:
+    - name: 01 - Read a ISE Credentials from Vault
+      community.hashi_vault.vault_kv2_get:
+        path: "ise1_credentials"
+        url: "https://vault.theglens.net:8200"
+        engine_mount_point: "kv"
+        auth_method: token
+        token: "{{ ansible_password }}"
+      register: ise_creds
+
+
+    - name: 02 - Get a List of the ISE Nodes
+      cisco.ise.node_info:
+        ise_hostname: "{{ ise_creds.data.data.ise_hostname }}"
+        ise_username: "{{ ise_creds.data.data.ise_username }}"
+        ise_password: "{{ ise_creds.data.data.ise_password }}"
+        ise_verify: false
+        ise_debug: true
+      register: ise_deployment_info
+      timeout: 120
+
+
+    - name: Timmay HARD STOP this Playbook
+      ansible.builtin.meta: end_play
