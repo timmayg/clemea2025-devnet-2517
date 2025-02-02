@@ -192,7 +192,7 @@
        zone: "{{ zone }}"
 #     register: cloudflare_dns_delete
      when: challenge_status == 'pending'
-
+     ignore_errors: true
 
    - name: Timmay HARD STOP this Playbook
      ansible.builtin.meta: end_play
