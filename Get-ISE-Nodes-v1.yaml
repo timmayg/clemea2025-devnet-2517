@@ -19,7 +19,7 @@
         ise_hostname: "{{ ise_creds.data.data.ise_hostname }}"
         ise_username: "{{ ise_creds.data.data.ise_username }}"
         ise_password: "{{ ise_creds.data.data.ise_password }}"
-        ise_verify: false
+        ise_verify: true
         ise_debug: true
       register: ise_deployment_info
       timeout: 120
