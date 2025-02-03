@@ -4,6 +4,7 @@
   gather_facts: false
 
   tasks:
+  
     - name: 01 - Read a ISE Credentials from Vault
       community.hashi_vault.vault_kv2_get:
         path: "ise1_credentials"

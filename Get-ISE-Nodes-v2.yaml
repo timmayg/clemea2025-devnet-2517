@@ -2,6 +2,7 @@
 - name: Get a List of the ISE Nodes v2.0
   hosts: localhost
   gather_facts: false
+  
   tasks:
 
     - name: 01 - Get a List of the ISE Nodes
