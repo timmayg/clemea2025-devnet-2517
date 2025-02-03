@@ -5,7 +5,6 @@
   vars:
     vault_url: "https://vault.theglens.net:8200"
     vault_mount: "kv"
-    ise_verify: true      # I set this to true on Sat Feb 1 1:19 am 
 
   tasks:
 
@@ -36,8 +35,8 @@
 
 #
 # HashiCorp Vault has a versioning system for secrets.
-# By modifying the version number, you can retrieve a previous 
-# version of the Certificate that is stored in Vault. 
+# By modifying the version number, you can retrieve a previous
+# version of the Certificate that is stored in Vault.
 #
 #    - name: Print
 #      ansible.builtin.debug:
@@ -60,8 +59,8 @@
         ise_hostname: "{{ ise_creds.data.data.ise_hostname }}"
         ise_username: "{{ ise_creds.data.data.ise_username }}"
         ise_password: "{{ ise_creds.data.data.ise_password }}"
-        ise_verify: true    # I set this to true on Sat Feb 1 1:19 am   # Set to true if using valid certificates
-        ise_debug: true
+        ise_verify: true     # Set to true if using valid certificates
+        ise_debug: false     # Set to true to enable debug output, typically keep as false
         allowRoleTransferForSameSubject: true
         allowReplacementOfCertificates: true
         allowReplacementOfPortalGroupTag: true
@@ -91,13 +90,6 @@
               `body.response.id:` {{ cert_import.ise_response.response.id }}
               "
 
-# This code block works , but body.response.id is converted to a URL.
-#        msg: "body.response.status {{ cert_import.ise_response.response.status }}<br>
-#              body.response.message {{ cert_import.ise_response.response.message }}<br>
-#              body.response.id {{ cert_import.ise_response.response.id }}"
-      
-      
-      # msg: "Cert Import message {{ cert_import.ise_response.response.message }}"    #THIS WORKS IF ALL ELSE FAILS for CiscoLiveEMEA
 
     - name: Timmay HARD STOP this Playbook
       ansible.builtin.meta: end_play
