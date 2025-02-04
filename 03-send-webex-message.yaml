@@ -23,7 +23,7 @@
       recipient_id: "{{ webex_auth.data.data.space_id }}"
       msg_type: markdown
       personal_token: "{{ webex_auth.data.data.awx_report_bot }}"
-      msg: "Successfully installed the Cert onto ISE!"
+      msg: "Successfully ran the Workflow Job and installed the Cert onto ISE!"
 
 
    - name: HARD STOP
