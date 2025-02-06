@@ -12,13 +12,13 @@
 #
 #   THESE TWO TASKS ARE FOR TESTING WITH RANDOM FQDNS
 #
-#   - name: Generate a random string for use in the FQDN
-#     ansible.builtin.set_fact:
-#       rand: "{{ lookup('community.general.random_string', length=5, lower=true, upper=false, special=false, numbers=false) }}"
-#
-#   - name: Build the Random Hostname and FQDN
-#     ansible.builtin.set_fact:
-#       fqdn: "aaa{{ rand }}.theglens.net"
+   - name: Generate a random string for use in the FQDN
+     ansible.builtin.set_fact:
+       rand: "{{ lookup('community.general.random_string', length=5, lower=true, upper=false, special=false, numbers=false) }}"
+
+   - name: Build the Random Hostname and FQDN
+     ansible.builtin.set_fact:
+       fqdn: "aaa{{ rand }}.theglens.net"
 
 
    - name: Print
