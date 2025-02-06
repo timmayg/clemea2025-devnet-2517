@@ -19,7 +19,7 @@
 
    - name: Get certificate information
      community.crypto.x509_certificate_info:
-       certificate: "{{ cert_info.data.data.cert }}"
+       content: "{{ cert_info.data.data.cert }}"
 #       path: "{{ cert_info.data.data.cert }}"
        # for valid_at, invalid_at and valid_in
        #valid_at:
