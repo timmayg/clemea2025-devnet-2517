@@ -6,8 +6,6 @@
    vault_url: "https://vault.theglens.net:8200"
    vault_mount: "kv"
 
-# "fqdn": "cisco-emea-2025.theglens.net",
-
   tasks:
    - name: 01 - Read The Certificate from Vault
      community.hashi_vault.vault_kv2_get:
@@ -17,9 +15,6 @@
       auth_method: token
       token: "{{ ansible_password }}"
      register: cert_info
-
-   - name: Timmay HARD STOP this Playbook
-     ansible.builtin.meta: end_play
 
 
    - name: Get certificate information
@@ -31,3 +26,7 @@
        #  fixed_timestamp: 20200331202428Z
        #  ten_seconds: "+10"
      register: result
+
+
+   - name: Timmay HARD STOP this Playbook
+     ansible.builtin.meta: end_play
