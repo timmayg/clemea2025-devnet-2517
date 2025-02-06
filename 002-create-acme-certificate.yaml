@@ -162,16 +162,20 @@
 #     ansible.builtin.shell: cat "{{ fqdn }}.cer"
 #     register: cert_file
 
-
-   - name: 13 - Delete the DNS TXT record (if it exists)
-     community.general.cloudflare_dns:
-       api_token: "{{ cloudflare_token.data.data.api_key }}"
-       record: "{{ dns_01_challenge_fqdn }}"
-       type: TXT
-       state: absent    # present (default), absent
-       zone: "{{ zone }}"
+#
+#  Just before Cisco Live EMEA 2025 , this occasionally started breaking
+#    unfortunately I had to disable this task for now , until I can figure out why. 
+#    thanks for understanding!  :-) 
+#
+#   - name: 13 - Delete the DNS TXT record (if it exists)
+#     community.general.cloudflare_dns:
+#       api_token: "{{ cloudflare_token.data.data.api_key }}"
+#       record: "{{ dns_01_challenge_fqdn }}"
+#       type: TXT
+#       state: absent    # present (default), absent
+#       zone: "{{ zone }}"
 #     register: cloudflare_dns_delete
-     when: challenge_status == 'pending'
+#     when: challenge_status == 'pending'
 
 
    - name: 14 - Create the binary PKCS12 File using Community Crypto OpenSSL_Pkcs12
