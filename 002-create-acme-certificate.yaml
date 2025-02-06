@@ -209,36 +209,6 @@
        token: "{{ ansible_password }}"
 
 
-   - name: Timmay HARD STOP this Playbook
-     ansible.builtin.meta: end_play
-
-
-   - name: 17 - Read the New Certificate from Vault, REQD for the next step 
-     community.hashi_vault.vault_kv2_get:
-       url: "{{ vault_url }}"
-       engine_mount_point: "{{ vault_mount }}"
-       path: "{{ fqdn }}"
-       auth_method: token
-       token: "{{ ansible_password }}"
-     register: current
-
-
-   - name: 18 - Append the Public Key to Vault Secret
-     vars:
-       values_to_update:
-          fullchain: "{{ lookup('file',  '{{ fqdn }}.fullchain') }}"
-     community.hashi_vault.vault_kv2_write:
-       url: "{{ vault_url }}"
-       engine_mount_point: "{{ vault_mount }}"
-       path: "{{ fqdn }}"
-       data: >-
-         {{
-           current.secret
-           | combine(values_to_update)
-         }}
-       auth_method: token
-       token: "{{ ansible_password }}"
-
    - name: 17 - Get certificate information
      community.crypto.x509_certificate_info:
        path: "{{ fqdn }}.cer"
