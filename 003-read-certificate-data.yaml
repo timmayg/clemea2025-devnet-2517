@@ -1,0 +1,33 @@
+---
+- name: Read a Certificate from Vault
+  hosts: localhost
+  gather_facts: false
+  vars:
+   vault_url: "https://vault.theglens.net:8200"
+   vault_mount: "kv"
+
+# "fqdn": "cisco-emea-2025.theglens.net",
+
+  tasks:
+   - name: 01 - Read The Certificate from Vault
+     community.hashi_vault.vault_kv2_get:
+      url: "{{ vault_url }}"
+      engine_mount_point: "{{ vault_mount }}"
+      path: "{{ fqdn }}"
+      auth_method: token
+      token: "{{ ansible_password }}"
+     register: cert_info
+
+   - name: Timmay HARD STOP this Playbook
+     ansible.builtin.meta: end_play
+
+
+   - name: Get certificate information
+     community.crypto.x509_certificate_info:
+       path: /etc/ssl/crt/ansible.com.crt
+       # for valid_at, invalid_at and valid_in
+       #valid_at:
+       #  one_day_ten_hours: "+1d10h"
+       #  fixed_timestamp: 20200331202428Z
+       #  ten_seconds: "+10"
+     register: result

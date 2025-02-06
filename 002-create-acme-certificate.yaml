@@ -185,7 +185,7 @@
        privatekey_path : "{{ fqdn }}.key"
        certificate_path : "{{ fqdn }}.fullchain"
        path: pkcs12_file.bin.p12
-       passphrase: "cisco123"
+       passphrase: "{{ pkcs12_password }}"
        state: present
 
 
