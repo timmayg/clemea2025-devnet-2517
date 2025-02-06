@@ -68,7 +68,6 @@
        path: "{{ fqdn }}.csr"
        privatekey_path: "{{ fqdn }}.key"
        common_name: "{{ fqdn }}"
-       subject_alt_name: "{{ fqdns }}"
 
 
    - name: 06 - Check whether an account with the given account key exists
