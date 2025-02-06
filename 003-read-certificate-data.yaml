@@ -24,7 +24,7 @@
 
    - name: Get certificate information
      community.crypto.x509_certificate_info:
-       path: /etc/ssl/crt/ansible.com.crt
+       path: "{{ cert_info.data.data.cert }}"
        # for valid_at, invalid_at and valid_in
        #valid_at:
        #  one_day_ten_hours: "+1d10h"
