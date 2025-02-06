@@ -242,7 +242,7 @@
    - name: 17 - Get certificate information
      community.crypto.x509_certificate_info:
        path: "{{ fqdn }}.cer"
-       
+
 
    - name: Timmay HARD STOP this Playbook
      ansible.builtin.meta: end_play
