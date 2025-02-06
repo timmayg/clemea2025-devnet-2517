@@ -2,75 +2,52 @@
 - name: Create a new ACME account with Let's Encrypt Staging
   hosts: localhost
   gather_facts: false
-  vars: 
+  vars:
    vault_url: "https://vault.theglens.net:8200"
    vault_mount: "kv"
 
   tasks:
-#    - name: 01 - Read The Let's Encrypt Private Key from Vault
-#      community.hashi_vault.vault_kv2_get:
-#        url: "{{ vault_url }}"
-#        engine_mount_point: "{{ vault_mount }}"
-#        path: "{{ vault_secret }}"
-#        auth_method: token
-#        token: "{{ ansible_password }}"
-#        version: 1
-#      register: response
 
-#    - name: Print the Private Key
-#      ansible.builtin.debug:
-#        msg: "{{ response.secret.public_key }}"
-#        msg: "{{ response.secret.private_key }}"
+   - name: 01 - Generate a EC384 bit ECC Private Key
+     community.crypto.openssl_privatekey:
+       curve: secp384r1
+       type: ECC
+       path: ~/le_private_key.pem
 
 
-    - name: 01 - Generate a EC384 bit ECC Private Key
-      community.crypto.openssl_privatekey:
-        curve: secp384r1
-        type: ECC
-        path: ~/le_private_key.pem
+   - name: 02 - Extract the Public Key
+     community.crypto.openssl_publickey:
+       path: ~/le_public_key.pem
+       privatekey_path: ~/le_private_key.pem
 
 
-    - name: 02 - Extract the Public Key
-      community.crypto.openssl_publickey:
-        path: ~/le_public_key.pem
-        privatekey_path: ~/le_private_key.pem
+   - name: 03 - Create a new secret and store the two keys
+     community.hashi_vault.vault_kv2_write:
+       url: "https://vault.theglens.net:8200"
+       path: "{{ key_name }}"
+       auth_method: token
+       token: "{{ ansible_password }}"
+       engine_mount_point: "kv"
+       data:
+         public_key: "{{ lookup('file', '~/le_public_key.pem') }}"
+         private_key: "{{ lookup('file', '~/le_private_key.pem') }}"
 
 
-    - name: 03 - Create a new secret and store the two keys
-      community.hashi_vault.vault_kv2_write:
-        url: "https://vault.theglens.net:8200"
-        path: "{{ key_name }}"
-        auth_method: token
-        token: "{{ ansible_password }}"
-        engine_mount_point: "kv"
-        data: 
-          public_key: "{{ lookup('file', '~/le_public_key.pem') }}"
-          private_key: "{{ lookup('file', '~/le_private_key.pem') }}"
+   - name: 05 - Create ACME account on the server
+     community.crypto.acme_account:
+       account_key_src: ~/le_private_key.pem
+       acme_directory: "{{ acme_directory }}"
+       acme_version: 2
+       contact:
+         - "{{ acme_email_address }}"
+       state: present
+       terms_agreed: true
+     register: acme_account
 
 
+   - name: 06 - Display ACME account details
+     ansible.builtin.debug:
+       var: acme_account
 
-#    - name: 04 - Write the private key to a file
-#      ansible.builtin.copy:
-#        content: "{{ response.secret.private_key }}"
-#        dest: ~/le_private_key.pem
-#s        mode: '0600'
-
-
-    - name: 05 - Create ACME account on the server
-      community.crypto.acme_account:
-        account_key_src: ~/le_private_key.pem
-        acme_directory: "{{ acme_directory }}"
-        acme_version: 2
-        contact:
-          - "{{ acme_email_address }}"
-        state: present
-        terms_agreed: true
-      register: acme_account
-
-    - name: 06 - Display ACME account details
-      ansible.builtin.debug:
-        var: acme_account
-
-    - name: Timmay HARD STOP this Playbook
-      ansible.builtin.meta: end_play
-
+   - name: Timmay HARD STOP this Playbook
+     ansible.builtin.meta: end_play
