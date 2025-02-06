@@ -1,0 +1,242 @@
+---
+- name: Create a Certificate using ACME and Store it in Vault
+  hosts: localhost
+  gather_facts: false
+  vars:
+   vault_url: "https://vault.theglens.net:8200"
+   vault_mount: "kv"
+
+
+
+  tasks:
+#
+#   THESE TWO TASKS ARE FOR TESTING WITH RANDOM FQDNS
+#
+#   - name: Generate a random string for use in the FQDN
+#     ansible.builtin.set_fact:
+#       rand: "{{ lookup('community.general.random_string', length=5, lower=true, upper=false, special=false, numbers=false) }}"
+#
+#   - name: Build the Random Hostname and FQDN
+#     ansible.builtin.set_fact:
+#       fqdn: "aaa{{ rand }}.theglens.net"
+
+
+   - name: Print
+     ansible.builtin.debug:
+       msg: "The fqdn for this certificate will be {{ fqdn }}."
+
+
+   - name: 01 - Generate a Private Key for the FQDN
+     community.crypto.openssl_privatekey:
+       curve: secp384r1
+       type: ECC
+       path: "{{ fqdn }}.key"
+
+
+   - name: 02 - Generate an OpenSSL public key in PEM format
+     community.crypto.openssl_publickey:
+       path: "{{ fqdn }}.pub"
+       privatekey_path: "{{ fqdn }}.key"
+
+
+   - name: 03 - Read The Let's Encrypt Private Key from Vault
+     community.hashi_vault.vault_kv2_get:
+      url: "{{ vault_url }}"
+      engine_mount_point: "{{ vault_mount }}"
+      path: "{{ key_name }}"
+      auth_method: token
+      token: "{{ ansible_password }}"
+     register: le_private_key
+
+
+   - name: 04 - Read The Cloudflare API Key from Vault
+     community.hashi_vault.vault_kv2_get:
+      url: "{{ vault_url }}"
+      engine_mount_point: "{{ vault_mount }}"
+      path: "cloudflare_token"
+      auth_method: token
+      token: "{{ ansible_password }}"
+     register: cloudflare_token
+
+#   - name: Print 
+#     ansible.builtin.debug:
+#       msg: "{{ server_private_key.secret.private_key }}"
+
+
+   - name: 05 - Generate an OpenSSL Certificate Signing Request
+     community.crypto.openssl_csr:
+       path: "{{ fqdn }}.csr"
+       privatekey_path: "{{ fqdn }}.key"
+       common_name: "{{ fqdn }}"
+
+
+   - name: 06 - Check whether an account with the given account key exists
+     community.crypto.acme_account_info:
+      account_key_content: "{{ le_private_key.data.data.private_key }}"
+      acme_directory: "{{ acme_directory }}"
+      acme_version: 2
+     register: account_data
+
+
+   - name: 07 - Create the initial ACME Challenge
+     community.crypto.acme_certificate:
+       account_email: "{{ account_data.account.contact[0] | replace('mailto:', '') }}"
+       account_key_content: "{{ le_private_key.secret.private_key }}"
+       csr: "{{ fqdn }}.csr"
+       cert: "{{ fqdn }}.cer"
+       chain: "{{ fqdn }}.chain"
+       fullchain: "{{ fqdn }}.fullchain"
+       challenge: dns-01
+       acme_directory: "{{ acme_directory }}"
+       acme_version: 2
+       # Renew if the certificate is at least 30 days old
+       remaining_days: 60
+     register: challenge_response
+
+
+#
+#   - name: HARD STOP
+#     ansible.builtin.meta: end_play
+
+
+   - name: 08 - Capture the ACME Challenge Response
+     ansible.builtin.set_fact:
+       challenge_status: "{{ challenge_response.authorizations[fqdn].status }}"
+
+
+#   - name: Print 
+#     ansible.builtin.debug:
+#       msg: "{{ challenge_response }}"
+
+
+   - name: 09 - Extract FQDN and DNS Challenge Text from ACME Response
+     ansible.builtin.set_fact:
+       dns_01_challenge_text: "{{ challenge_response.challenge_data[fqdn]['dns-01'].resource_value }}"
+       dns_01_challenge_fqdn: "{{ challenge_response.challenge_data[fqdn]['dns-01'].record.split('.')[0:2] | join('.') }}"
+     when: challenge_status == 'pending'
+
+
+#   - name: Print
+#     ansible.builtin.debug:
+#       msg: "DNS-01 challenge text is: {{ dns_01_challenge_text }}"
+#       msg: "DNS-01 certificate FQDN is: {{ dns_01_challenge_fqdn }}"
+
+
+   - name: 10 - Create DNS TXT record with DNS-01 Challenge Text"
+     community.general.cloudflare_dns:
+       api_token: "{{ cloudflare_token.data.data.api_key }}"
+       record: "{{ dns_01_challenge_fqdn }}"
+       type: TXT
+       value: "{{ dns_01_challenge_text }}"
+       state: present    # present (default), absent
+       zone: "{{ zone }}"
+     register: cloudflare_dns_create
+     when: challenge_status == 'pending'
+
+
+   - name: 11 - Pause the Playbook for 20 seconds
+     ansible.builtin.pause:
+       seconds: 20
+     when: challenge_status == 'pending'  
+
+
+   - name: 12 - Let the ACME Challenge be Validated and retrieve the cert and intermediate certificate
+     community.crypto.acme_certificate:
+       account_email: "{{ account_data.account.contact[0] | replace('mailto:', '') }}"
+       account_key_content: "{{ le_private_key.secret.private_key }}"
+       csr: "{{ fqdn }}.csr"
+       cert: "{{ fqdn }}.cer"
+       chain: "{{ fqdn }}.chain"
+       fullchain: "{{ fqdn }}.fullchain"
+       challenge: dns-01
+       acme_directory: "{{ acme_directory }}"
+       acme_version: 2
+       # Renew if the certificate is at least 30 days old
+       remaining_days: 60
+       data: "{{ challenge_response }}"
+     register: certificate_response
+
+
+
+#   - name: cat the cert file
+#     ansible.builtin.shell: cat "{{ fqdn }}.cer"
+#     register: cert_file
+
+
+   - name: 13 - Delete the DNS TXT record (if it exists)
+     community.general.cloudflare_dns:
+       api_token: "{{ cloudflare_token.data.data.api_key }}"
+       record: "{{ dns_01_challenge_fqdn }}"
+       type: TXT
+       state: absent    # present (default), absent
+       zone: "{{ zone }}"
+#     register: cloudflare_dns_delete
+     when: challenge_status == 'pending'
+
+
+   - name: 14 - Create the binary PKCS12 File using Community Crypto OpenSSL_Pkcs12
+     community.crypto.openssl_pkcs12:
+       action: export
+       friendly_name: "{{ fqdn }}"
+       privatekey_path : "{{ fqdn }}.key"
+       certificate_path : "{{ fqdn }}.fullchain"
+       path: pkcs12_file.bin.p12
+       passphrase: "cisco123"
+       state: present
+
+
+   - name: 15 - Encode the PKCS12 file to base64 Text
+     ansible.builtin.command: "openssl base64 -in pkcs12_file.bin.p12 -out pkcs12_file.p12.txt"
+
+
+   - name: 16 - Write the New Certificate to Vault
+     community.hashi_vault.vault_kv2_write:
+       url: "{{ vault_url }}"
+       engine_mount_point: "{{ vault_mount }}"
+       path: "{{ fqdn }}"
+       data:
+         public_key: "{{ lookup('file', '{{ fqdn }}.pub') }}"
+         private_key: "{{ lookup('file', '{{ fqdn }}.key') }}"
+         cert: "{{ lookup('file', '{{ fqdn }}.cer') }}"
+         chain: "{{ lookup('file', '{{ fqdn }}.chain') }}"
+         fullchain: "{{ lookup('file',  '{{ fqdn }}.fullchain') }}"
+         p12_in_base64: "{{ lookup('file',  'pkcs12_file.p12.txt') }}"
+       auth_method: token
+       token: "{{ ansible_password }}"
+
+
+   - name: Timmay HARD STOP this Playbook
+     ansible.builtin.meta: end_play
+
+
+   - name: 17 - Read the New Certificate from Vault, REQD for the next step 
+     community.hashi_vault.vault_kv2_get:
+       url: "{{ vault_url }}"
+       engine_mount_point: "{{ vault_mount }}"
+       path: "{{ fqdn }}"
+       auth_method: token
+       token: "{{ ansible_password }}"
+     register: current
+
+
+   - name: 18 - Append the Public Key to Vault Secret
+     vars:
+       values_to_update:
+          fullchain: "{{ lookup('file',  '{{ fqdn }}.fullchain') }}"
+     community.hashi_vault.vault_kv2_write:
+       url: "{{ vault_url }}"
+       engine_mount_point: "{{ vault_mount }}"
+       path: "{{ fqdn }}"
+       data: >-
+         {{
+           current.secret
+           | combine(values_to_update)
+         }}
+       auth_method: token
+       token: "{{ ansible_password }}"
+
+
+   - name: Timmay HARD STOP this Playbook
+     ansible.builtin.meta: end_play
+
+     
