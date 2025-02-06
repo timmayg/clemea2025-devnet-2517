@@ -20,13 +20,7 @@
    - name: Get certificate information
      community.crypto.x509_certificate_info:
        content: "{{ cert_info.data.data.cert }}"
-#       path: "{{ cert_info.data.data.cert }}"
-       # for valid_at, invalid_at and valid_in
-       #valid_at:
-       #  one_day_ten_hours: "+1d10h"
-       #  fixed_timestamp: 20200331202428Z
-       #  ten_seconds: "+10"
-     register: result
+     register: cert_info
 
 
    - name: Timmay HARD STOP this Playbook
