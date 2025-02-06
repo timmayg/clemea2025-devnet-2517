@@ -2,7 +2,7 @@
 - name: Get a List of the ISE Nodes v2.0
   hosts: localhost
   gather_facts: false
-  
+
   tasks:
 
     - name: 01 - Get a List of the ISE Nodes
@@ -12,8 +12,8 @@
         ise_password: "{{ ise_password }}"
         ise_verify: true
         ise_debug: false
-      register: ise_deployment_info
-      timeout: 120
+      register: ise_node_list
+      timeout: 15
 
 
     - name: Timmay HARD STOP this Playbook
