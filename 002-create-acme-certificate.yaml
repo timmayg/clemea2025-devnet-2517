@@ -18,7 +18,7 @@
 
    - name: Build the Random Hostname and FQDN
      ansible.builtin.set_fact:
-       fqdn: "aaa{{ rand }}.theglens.net"
+       fqdn: "aa{{ rand }}.theglens.net"
 
 
    - name: Print
