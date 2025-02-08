@@ -9,37 +9,26 @@
 
 
   tasks:
-#
-#   THESE TWO TASKS ARE FOR TESTING WITH RANDOM FQDNS
-#
-   - name: Generate a random string for use in the FQDN
-     ansible.builtin.set_fact:
-       rand: "{{ lookup('community.general.random_string', length=5, lower=true, upper=false, special=false, numbers=false) }}"
-
-   - name: Build the Random Hostname and FQDN
-     ansible.builtin.set_fact:
-       fqdn: "aa{{ rand }}.theglens.net"
-
 
    - name: Print
      ansible.builtin.debug:
        msg: "The fqdn for this certificate will be {{ fqdn }}."
 
 
-   - name: 01 - Generate a Private Key for the FQDN
+   - name: 01 - Use OpenSSL to Generate a Private Key for the Certificate Signing Request
      community.crypto.openssl_privatekey:
        curve: secp384r1
        type: ECC
        path: "{{ fqdn }}.key"
 
 
-   - name: 02 - Generate an OpenSSL public key in PEM format
+   - name: 02 - Use OpenSSL to Extract the Public Key for the Certificate Signing Request
      community.crypto.openssl_publickey:
        path: "{{ fqdn }}.pub"
        privatekey_path: "{{ fqdn }}.key"
 
 
-   - name: 03 - Read The Let's Encrypt Private Key from Vault
+   - name: 03 - Read The Let's Encrypt Private Key from Vault for Authentication
      community.hashi_vault.vault_kv2_get:
       url: "{{ vault_url }}"
       engine_mount_point: "{{ vault_mount }}"

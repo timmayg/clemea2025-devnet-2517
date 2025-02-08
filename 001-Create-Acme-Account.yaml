@@ -8,14 +8,14 @@
 
   tasks:
 
-   - name: 01 - Generate a EC384 bit ECC Private Key
+   - name: 01 - Use OpenSSL to Generate a Private Key
      community.crypto.openssl_privatekey:
        curve: secp384r1
        type: ECC
        path: ~/le_private_key.pem
 
 
-   - name: 02 - Extract the Public Key
+   - name: 02 - Use OpenSSL to Extract the Public Key
      community.crypto.openssl_publickey:
        path: ~/le_public_key.pem
        privatekey_path: ~/le_private_key.pem
